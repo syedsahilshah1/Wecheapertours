@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
-import WhatsAppButton from './WhatsAppButton';
+import LiveChatWidget from '../common/LiveChatWidget';
 import EnquiryModal from '../common/EnquiryModal';
 
 const PublicLayout = () => {
@@ -17,7 +17,7 @@ const PublicLayout = () => {
       </main>
 
       <Footer />
-      <WhatsAppButton />
+      <LiveChatWidget />
 
       <EnquiryModal
         isOpen={globalModalOpen}

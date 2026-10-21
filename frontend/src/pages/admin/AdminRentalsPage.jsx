@@ -46,11 +46,15 @@ const AdminRentalsPage = () => {
       adminApi.getDestinations(),
     ]).then(([lRes, dRes]) => {
       if (lRes.data.success) {
+        const raw = Array.isArray(lRes.data.data) ? lRes.data.data : (lRes.data.data?.data || []);
         // filter down to car rentals (category 3) & vacation rentals (category 5)
-        const relevant = lRes.data.data.filter(item => [3, 5].includes(item.category_id));
+        const relevant = raw.filter(item => [3, 5].includes(item.category_id));
         setRentals(relevant);
       }
-      if (dRes.data.success) setDestinations(dRes.data.data);
+      if (dRes.data.success) {
+        const rawDest = Array.isArray(dRes.data.data) ? dRes.data.data : (dRes.data.data?.data || []);
+        setDestinations(rawDest);
+      }
     }).finally(() => setLoading(false));
   };
 

@@ -30,7 +30,8 @@ const AdminEventsPage = () => {
     adminApi.getListings({ category_slug: 'events' })
       .then((res) => {
         if (res.data.success) {
-          setEvents(res.data.data);
+          const raw = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.data || []);
+          setEvents(raw);
         }
       })
       .finally(() => setLoading(false));

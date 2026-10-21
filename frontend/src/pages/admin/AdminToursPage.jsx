@@ -62,12 +62,19 @@ const AdminToursPage = () => {
       adminApi.getServices(),
     ]).then(([lRes, dRes, sRes]) => {
       if (lRes.data.success) {
+        const raw = Array.isArray(lRes.data.data) ? lRes.data.data : (lRes.data.data?.data || []);
         // filter down to excursions (1) & nile cruises (2)
-        const relevant = lRes.data.data.filter(item => [1, 2].includes(item.category_id));
+        const relevant = raw.filter(item => [1, 2].includes(item.category_id));
         setListings(relevant);
       }
-      if (dRes.data.success) setDestinations(dRes.data.data);
-      if (sRes.data.success) setCategories(sRes.data.data.filter(c => [1, 2].includes(c.id)));
+      if (dRes.data.success) {
+        const rawDest = Array.isArray(dRes.data.data) ? dRes.data.data : (dRes.data.data?.data || []);
+        setDestinations(rawDest);
+      }
+      if (sRes.data.success) {
+        const rawServices = Array.isArray(sRes.data.data) ? sRes.data.data : (sRes.data.data?.data || []);
+        setCategories(rawServices.filter(c => [1, 2].includes(c.id)));
+      }
     }).finally(() => setLoading(false));
   };
 

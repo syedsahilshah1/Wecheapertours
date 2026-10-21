@@ -32,7 +32,8 @@ const AdminConciergePage = () => {
     adminApi.getListings({ category_slug: 'concierge' })
       .then((res) => {
         if (res.data.success) {
-          setServices(res.data.data);
+          const raw = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.data || []);
+          setServices(raw);
         }
       })
       .finally(() => setLoading(false));

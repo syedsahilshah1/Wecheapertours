@@ -16,7 +16,8 @@ import {
   ExternalLink, 
   Menu, 
   X,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -32,6 +33,7 @@ const AdminLayout = () => {
 
   const navItems = [
     { name: 'Dashboard Overview', path: '/admin', icon: LayoutDashboard, end: true },
+    { name: 'Live Support Chat', path: '/admin/chat', icon: MessageSquare },
     { name: 'Customer Enquiries', path: '/admin/enquiries', icon: Inbox },
     { name: 'Destinations', path: '/admin/destinations', icon: MapPin },
     { name: 'Tours & Cruises', path: '/admin/tours', icon: Compass },
@@ -41,7 +43,7 @@ const AdminLayout = () => {
     { name: 'Service Categories', path: '/admin/services', icon: FolderTree },
     { name: 'Media Library', path: '/admin/media', icon: ImageIcon },
     { name: 'Website Settings', path: '/admin/settings', icon: Settings },
-    { name: 'Admin Users', path: '/admin/users', icon: Users },
+    { name: 'User Management', path: '/admin/users', icon: Users },
   ];
 
   return (

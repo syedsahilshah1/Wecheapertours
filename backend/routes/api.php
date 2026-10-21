@@ -99,5 +99,15 @@ Route::prefix('v1')->group(function () {
                 'data' => User::select('id', 'name', 'email', 'role', 'is_active', 'created_at')->get(),
             ]);
         });
+
+        // Live Chat (Admin & Manager)
+        Route::get('/chat/conversations', [\App\Http\Controllers\Api\ChatController::class, 'adminGetConversations']);
+        Route::post('/chat/conversations/{id}/messages', [\App\Http\Controllers\Api\ChatController::class, 'adminReply']);
+        Route::post('/chat/conversations/{id}/close', [\App\Http\Controllers\Api\ChatController::class, 'adminClose']);
     });
+
+    // Public Live Chat (Customer & Visitor)
+    Route::post('/chat/start', [\App\Http\Controllers\Api\ChatController::class, 'start']);
+    Route::get('/chat/{id}/messages', [\App\Http\Controllers\Api\ChatController::class, 'getMessages']);
+    Route::post('/chat/{id}/messages', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
 });

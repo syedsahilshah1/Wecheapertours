@@ -44,10 +44,11 @@ const AdminEnquiriesPage = () => {
     adminApi.getEnquiries(params)
       .then((res) => {
         if (res.data.success) {
-          setEnquiries(res.data.data);
+          const list = Array.isArray(res.data.data) ? res.data.data : (res.data.data?.data || []);
+          setEnquiries(list);
           // If query param id is passed, auto open modal
           if (highlightedId) {
-            const found = res.data.data.find((e) => e.id.toString() === highlightedId);
+            const found = list.find((e) => e.id.toString() === highlightedId);
             if (found) openDetail(found.id);
           }
         }

@@ -38,6 +38,7 @@ import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminMediaPage from './pages/admin/AdminMediaPage';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminChatPage from './pages/admin/AdminChatPage';
 
 function App() {
   return (
@@ -78,6 +79,7 @@ function App() {
               }
             >
               <Route index element={<AdminDashboardOverview />} />
+              <Route path="chat" element={<AdminChatPage />} />
               <Route path="enquiries" element={<AdminEnquiriesPage />} />
               <Route path="destinations" element={<AdminDestinationsPage />} />
               <Route path="tours" element={<AdminToursPage />} />
