@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   Home, 
   MapPin, 
@@ -16,11 +17,19 @@ import { useSettings } from '../context/SettingsContext';
 import EnquiryModal from '../components/common/EnquiryModal';
 
 const VacationRentalsPage = () => {
+  const [searchParams] = useSearchParams();
+  const urlDest = searchParams.get('destination') || searchParams.get('dest') || '';
   const { getWhatsAppLink } = useSettings();
   const [rentals, setRentals] = useState([]);
   const [destinations, setDestinations] = useState([]);
-  const [selectedDest, setSelectedDest] = useState('');
+  const [selectedDest, setSelectedDest] = useState(urlDest);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (urlDest) {
+      setSelectedDest(urlDest);
+    }
+  }, [urlDest]);
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);

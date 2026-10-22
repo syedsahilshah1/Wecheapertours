@@ -16,12 +16,19 @@ import EnquiryModal from '../components/common/EnquiryModal';
 
 const ExcursionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentDest = searchParams.get('dest') || '';
+  const currentDest = searchParams.get('dest') || searchParams.get('destination') || '';
+  const urlSearch = searchParams.get('search') || '';
 
   const [tours, setTours] = useState([]);
   const [destinations, setDestinations] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(urlSearch);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (urlSearch) {
+      setSearchQuery(urlSearch);
+    }
+  }, [urlSearch]);
 
   // Enquiry Modal
   const [modalOpen, setModalOpen] = useState(false);
