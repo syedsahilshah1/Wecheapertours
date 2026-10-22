@@ -1,113 +1,93 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  MapPin, 
-  Calendar, 
-  Users, 
-  Search, 
-  Compass, 
-  Ship, 
-  Home, 
-  Car, 
-  Anchor, 
+  Compass,
+  Calendar as CalendarIcon, 
+  User, 
   ChevronDown, 
   Plus, 
   Minus, 
-  Check, 
-  Sparkles,
-  ShieldCheck,
-  X
+  X,
+  Search
 } from 'lucide-react';
-
-const CATEGORIES = [
-  { id: 'excursions', name: 'Excursions & Tours', path: '/excursions', icon: Compass },
-  { id: 'nile-cruises', name: 'Nile Cruises', path: '/nile-cruises', icon: Ship },
-  { id: 'vacation-rentals', name: 'Hotels & Rentals', path: '/vacation-rentals', icon: Home },
-  { id: 'car-rentals', name: 'Car & Chauffeur', path: '/car-rentals', icon: Car },
-  { id: 'ferry-crossings', name: 'Ferry Crossings', path: '/ferry-crossings', icon: Anchor },
-];
 
 const POPULAR_DESTINATIONS = [
   { slug: 'cairo-giza', name: 'Cairo & Giza', desc: 'Pyramids, Sphinx, Museums' },
-  { slug: 'luxor', name: 'Luxor', desc: 'Valley of Kings, Karnak, Balloons' },
-  { slug: 'aswan', name: 'Aswan', desc: 'Philae, Abu Simbel, Nile Feluccas' },
-  { slug: 'hurghada', name: 'Hurghada', desc: 'Red Sea, Coral Reefs, Desert Safari' },
-  { slug: 'sharm-el-sheikh', name: 'Sharm El Sheikh', desc: 'Ras Mohammed, Diving, Sinai' },
+  { slug: 'luxor', name: 'Luxor', desc: 'Valley of the Kings, Karnak, Balloons' },
+  { slug: 'aswan', name: 'Aswan', desc: 'Philae, Abu Simbel, Feluccas' },
+  { slug: 'hurghada', name: 'Hurghada', desc: 'Red Sea, Diving, Desert Safari' },
+  { slug: 'sharm-el-sheikh', name: 'Sharm El Sheikh', desc: 'Ras Mohammed, Sinai' },
   { slug: 'alexandria', name: 'Alexandria', desc: 'Mediterranean Coast, Citadel' },
-  { slug: 'dahab', name: 'Dahab', desc: 'Blue Hole, Canyon, Bohemian Sinai' },
-];
-
-const QUICK_TAGS = [
-  { label: 'Pyramids of Giza', slug: 'cairo-giza', category: 'excursions' },
-  { label: 'Luxor Temples', slug: 'luxor', category: 'excursions' },
-  { label: '5-Star Nile Cruise', slug: 'luxor', category: 'nile-cruises' },
-  { label: 'Red Sea Diving', slug: 'hurghada', category: 'excursions' },
-  { label: 'Cairo Airport Transfer', slug: 'cairo-giza', category: 'car-rentals' },
+  { slug: 'dahab', name: 'Dahab', desc: 'Blue Hole, Canyon' },
 ];
 
 export default function HeroBookingFilter({ destinations = [] }) {
   const navigate = useNavigate();
 
-  const [activeCategory, setActiveCategory] = useState('excursions');
   const [destinationQuery, setDestinationQuery] = useState('');
   const [selectedDestinationSlug, setSelectedDestinationSlug] = useState('');
   
-  // Date State
-  const todayStr = new Date().toISOString().split('T')[0];
-  const tomorrowDate = new Date();
-  tomorrowDate.setDate(tomorrowDate.getDate() + 3);
-  const tomorrowStr = tomorrowDate.toISOString().split('T')[0];
+  // Dates
+  const today = new Date();
+  const next3Days = new Date();
+  next3Days.setDate(today.getDate() + 3);
 
-  const [startDate, setStartDate] = useState(todayStr);
-  const [endDate, setEndDate] = useState(tomorrowStr);
+  const [startDate, setStartDate] = useState(today.toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(next3Days.toISOString().split('T')[0]);
+  const [datesSelected, setDatesSelected] = useState(false);
 
-  // Guests State
+  // Guests
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
   const [rooms, setRooms] = useState(1);
 
-  // Popover Toggles
-  const [destDropdownOpen, setDestDropdownOpen] = useState(false);
-  const [guestsPopoverOpen, setGuestsPopoverOpen] = useState(false);
+  // Dropdowns
+  const [destOpen, setDestOpen] = useState(false);
+  const [datesOpen, setDatesOpen] = useState(false);
+  const [guestsOpen, setGuestsOpen] = useState(false);
 
-  // Filter options
-  const [privateOnly, setPrivateOnly] = useState(false);
-  const [freeCancel, setFreeCancel] = useState(true);
+  // Checkbox option
+  const [freeCancel, setFreeCancel] = useState(false);
 
-  // Refs for outside click
+  // Refs
   const destRef = useRef(null);
+  const datesRef = useRef(null);
   const guestsRef = useRef(null);
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (destRef.current && !destRef.current.contains(event.target)) {
-        setDestDropdownOpen(false);
-      }
-      if (guestsRef.current && !guestsRef.current.contains(event.target)) {
-        setGuestsPopoverOpen(false);
-      }
+      if (destRef.current && !destRef.current.contains(event.target)) setDestOpen(false);
+      if (datesRef.current && !datesRef.current.contains(event.target)) setDatesOpen(false);
+      if (guestsRef.current && !guestsRef.current.contains(event.target)) setGuestsOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter destination options based on user typing
   const allDestinations = destinations.length > 0 ? destinations : POPULAR_DESTINATIONS;
   const filteredDests = allDestinations.filter(d => 
-    d.name.toLowerCase().includes(destinationQuery.toLowerCase()) ||
+    d.name?.toLowerCase().includes(destinationQuery.toLowerCase()) ||
     (d.desc && d.desc.toLowerCase().includes(destinationQuery.toLowerCase()))
   );
 
-  const handleSelectDestination = (dest) => {
+  const formatShortDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const handleSelectDest = (dest) => {
     setDestinationQuery(dest.name);
     setSelectedDestinationSlug(dest.slug || '');
-    setDestDropdownOpen(false);
+    setDestOpen(false);
   };
 
   const handleSearch = (e) => {
     if (e) e.preventDefault();
-
-    const selectedCatObj = CATEGORIES.find(c => c.id === activeCategory) || CATEGORIES[0];
     const params = new URLSearchParams();
 
     if (selectedDestinationSlug) {
@@ -117,350 +97,303 @@ export default function HeroBookingFilter({ destinations = [] }) {
       params.set('search', destinationQuery);
     }
 
-    if (startDate) params.set('from', startDate);
-    if (endDate) params.set('to', endDate);
+    if (datesSelected && startDate) params.set('from', startDate);
+    if (datesSelected && endDate) params.set('to', endDate);
     
     const totalGuests = adults + children;
     if (totalGuests > 1) params.set('guests', totalGuests.toString());
     if (rooms > 1) params.set('rooms', rooms.toString());
-    if (privateOnly) params.set('private', 'true');
     if (freeCancel) params.set('freeCancel', 'true');
 
-    navigate(`${selectedCatObj.path}?${params.toString()}`);
-  };
-
-  const handleQuickTagClick = (tag) => {
-    setActiveCategory(tag.category);
-    setSelectedDestinationSlug(tag.slug);
-    setDestinationQuery(tag.label);
-    
-    const selectedCatObj = CATEGORIES.find(c => c.id === tag.category) || CATEGORIES[0];
-    const params = new URLSearchParams();
-    params.set('dest', tag.slug);
-    params.set('destination', tag.slug);
-    params.set('search', tag.label);
-    navigate(`${selectedCatObj.path}?${params.toString()}`);
+    navigate(`/excursions?${params.toString()}`);
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-2 sm:px-4 mt-2 sm:mt-4 z-30">
+    <div className="w-full max-w-5xl mx-auto px-3 sm:px-4 z-30">
       
-      {/* 1. Category Switcher Tabs (Booking.com style) */}
-      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-        {CATEGORIES.map((cat) => {
-          const Icon = cat.icon;
-          const isActive = activeCategory === cat.id;
-          return (
-            <button
-              key={cat.id}
-              type="button"
-              onClick={() => setActiveCategory(cat.id)}
-              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-t-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
-                isActive
-                  ? 'bg-amber-400 text-slate-950 font-bold shadow-md shadow-amber-400/20 translate-y-0.5'
-                  : 'bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-white/10 hover:text-white backdrop-blur-md'
-              }`}
-            >
-              <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span>{cat.name}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Booking.com style frame with site luxury amber gold */}
+      <form 
+        onSubmit={handleSearch}
+        className="bg-amber-500 p-1 rounded-xl shadow-2xl flex flex-col lg:flex-row items-stretch gap-1"
+      >
 
-      {/* 2. Main Booking.com Search Bar Frame (Iconic yellow/amber border container) */}
-      <div className="relative bg-amber-400 p-1 sm:p-1.5 rounded-2xl rounded-tl-none shadow-2xl shadow-black/50">
-        <form 
-          onSubmit={handleSearch}
-          className="bg-white rounded-xl grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-200 shadow-inner"
+        {/* 1. Destination Box */}
+        <div 
+          ref={destRef} 
+          className="relative flex-1 bg-white p-2 sm:p-2.5 rounded flex items-center gap-3 cursor-pointer select-none"
+          onClick={() => setDestOpen(true)}
         >
-
-          {/* SECTION A: Destination Input */}
-          <div ref={destRef} className="relative md:col-span-4 p-2.5 sm:p-3 text-left">
-            <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setDestDropdownOpen(prev => !prev)}
+          <div className="text-amber-500 shrink-0">
+            <Compass className="w-6 h-6 stroke-[1.75]" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="text-[11px] text-slate-500 font-normal leading-tight">
+              Enter destination
+            </div>
+            <input
+              type="text"
+              value={destinationQuery}
+              onChange={(e) => {
+                setDestinationQuery(e.target.value);
+                setSelectedDestinationSlug('');
+                setDestOpen(true);
+              }}
+              onFocus={() => setDestOpen(true)}
+              placeholder="Where are you going?"
+              className="w-full text-slate-900 font-bold text-sm sm:text-[15px] placeholder-slate-700 bg-transparent border-0 outline-none p-0 truncate cursor-text"
+            />
+          </div>
+          {destinationQuery && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setDestinationQuery('');
+                setSelectedDestinationSlug('');
+              }}
+              className="text-slate-400 hover:text-slate-600 p-1"
             >
-              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 text-amber-600">
-                <MapPin className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Where to in Egypt?
-                </label>
-                <input
-                  type="text"
-                  value={destinationQuery}
-                  onChange={(e) => {
-                    setDestinationQuery(e.target.value);
-                    setSelectedDestinationSlug('');
-                    setDestDropdownOpen(true);
-                  }}
-                  onFocus={() => setDestDropdownOpen(true)}
-                  placeholder="Cairo, Luxor, Hurghada..."
-                  className="w-full text-slate-900 font-semibold text-sm sm:text-base placeholder-slate-400 bg-transparent border-0 outline-none p-0 truncate cursor-text"
-                />
-              </div>
-              {destinationQuery && (
+              <X className="w-4 h-4" />
+            </button>
+          )}
+
+          {/* Destination Dropdown */}
+          {destOpen && (
+            <div 
+              className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-lg shadow-2xl border border-slate-200 py-2 z-50 max-h-64 overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {filteredDests.map((dest) => (
                 <button
+                  key={dest.slug || dest.id || dest.name}
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDestinationQuery('');
-                    setSelectedDestinationSlug('');
-                  }}
-                  className="text-slate-400 hover:text-slate-600 p-1"
+                  onClick={() => handleSelectDest(dest)}
+                  className="w-full px-4 py-2 text-left hover:bg-slate-100 flex items-center justify-between cursor-pointer"
                 >
-                  <X className="w-4 h-4" />
+                  <div>
+                    <div className="font-bold text-slate-900 text-sm">{dest.name}</div>
+                    {dest.desc && <div className="text-xs text-slate-500">{dest.desc}</div>}
+                  </div>
+                  <span className="text-[11px] text-slate-400">Egypt</span>
                 </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 2. Select Dates Box */}
+        <div 
+          ref={datesRef} 
+          className="relative flex-1 bg-white p-2 sm:p-2.5 rounded flex items-center gap-3 cursor-pointer select-none"
+          onClick={() => setDatesOpen(prev => !prev)}
+        >
+          <div className="text-amber-500 shrink-0">
+            <CalendarIcon className="w-6 h-6 stroke-[1.75]" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <div className="text-[11px] text-slate-500 font-normal leading-tight">
+              Select dates
+            </div>
+            <div className="text-slate-900 font-bold text-sm sm:text-[15px] truncate">
+              {datesSelected ? (
+                `${formatShortDate(startDate)} — ${formatShortDate(endDate)}`
+              ) : (
+                <span className="font-semibold text-slate-800">Check-in date — Check-out date</span>
               )}
             </div>
-
-            {/* Destination Autocomplete Dropdown */}
-            {destDropdownOpen && (
-              <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-50 max-h-64 overflow-y-auto">
-                <div className="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Popular Egyptian Destinations</span>
-                </div>
-                {filteredDests.length > 0 ? (
-                  filteredDests.map((dest) => (
-                    <button
-                      key={dest.slug || dest.id || dest.name}
-                      type="button"
-                      onClick={() => handleSelectDestination(dest)}
-                      className="w-full px-3 py-2 text-left hover:bg-amber-50 flex items-center gap-3 transition-colors cursor-pointer group"
-                    >
-                      <div className="w-7 h-7 rounded-md bg-slate-100 group-hover:bg-amber-100 flex items-center justify-center shrink-0">
-                        <MapPin className="w-3.5 h-3.5 text-amber-600" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-slate-900 text-sm group-hover:text-amber-700">
-                          {dest.name}
-                        </div>
-                        {dest.desc && (
-                          <div className="text-xs text-slate-500 truncate">
-                            {dest.desc}
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-xs text-slate-500 text-center">
-                    No matching Egyptian destination found. Press search to look across all tours.
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* SECTION B: Dates (Check-in / Check-out) */}
-          <div className="md:col-span-4 p-2.5 sm:p-3 text-left">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 text-amber-600">
-                <Calendar className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="flex-1 min-w-0 grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    From
-                  </label>
-                  <input
-                    type="date"
-                    min={todayStr}
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full text-slate-900 font-semibold text-xs sm:text-sm bg-transparent border-0 outline-none p-0 cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                    To
-                  </label>
-                  <input
-                    type="date"
-                    min={startDate || todayStr}
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full text-slate-900 font-semibold text-xs sm:text-sm bg-transparent border-0 outline-none p-0 cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION C: Guests & Rooms Popover */}
-          <div ref={guestsRef} className="relative md:col-span-3 p-2.5 sm:p-3 text-left">
+          {/* Dates Popover */}
+          {datesOpen && (
             <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setGuestsPopoverOpen(prev => !prev)}
+              className="absolute left-0 right-0 sm:left-auto sm:w-72 top-full mt-1.5 bg-white rounded-lg shadow-2xl border border-slate-200 p-3.5 z-50 space-y-3"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 text-amber-600">
-                <Users className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                  Travelers
-                </label>
-                <div className="font-semibold text-slate-900 text-xs sm:text-sm truncate">
-                  {adults} adults · {children} kids · {rooms} room{rooms > 1 ? 's' : ''}
+              <div className="text-xs font-bold text-slate-800 border-b pb-1.5">Select Travel Dates</div>
+              <div className="grid grid-cols-2 gap-2 text-left">
+                <div>
+                  <label className="block text-[10px] text-slate-500 font-medium mb-1">Check-in</label>
+                  <input
+                    type="date"
+                    min={today.toISOString().split('T')[0]}
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      setDatesSelected(true);
+                    }}
+                    className="w-full text-xs p-1.5 border border-slate-300 rounded font-semibold text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] text-slate-500 font-medium mb-1">Check-out</label>
+                  <input
+                    type="date"
+                    min={startDate || today.toISOString().split('T')[0]}
+                    value={endDate}
+                    onChange={(e) => {
+                      setEndDate(e.target.value);
+                      setDatesSelected(true);
+                    }}
+                    className="w-full text-xs p-1.5 border border-slate-300 rounded font-semibold text-slate-800"
+                  />
                 </div>
               </div>
-              <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+              <button
+                type="button"
+                onClick={() => {
+                  setDatesSelected(true);
+                  setDatesOpen(false);
+                }}
+                className="w-full py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded text-xs font-bold transition"
+              >
+                Apply dates
+              </button>
             </div>
+          )}
+        </div>
 
-            {/* Guests Counter Popover */}
-            {guestsPopoverOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-50 space-y-4">
-                
-                {/* Adults */}
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">Adults</div>
-                    <div className="text-xs text-slate-500">Age 18 and older</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={adults <= 1}
-                      onClick={() => setAdults(prev => Math.max(1, prev - 1))}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Minus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-slate-900 text-sm">{adults}</span>
-                    <button
-                      type="button"
-                      disabled={adults >= 20}
-                      onClick={() => setAdults(prev => prev + 1)}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Children */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">Children</div>
-                    <div className="text-xs text-slate-500">Age 0 – 17</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={children <= 0}
-                      onClick={() => setChildren(prev => Math.max(0, prev - 1))}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Minus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-slate-900 text-sm">{children}</span>
-                    <button
-                      type="button"
-                      disabled={children >= 15}
-                      onClick={() => setChildren(prev => prev + 1)}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Rooms */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <div>
-                    <div className="text-sm font-bold text-slate-900">Rooms / Vehicles</div>
-                    <div className="text-xs text-slate-500">For booking capacity</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      disabled={rooms <= 1}
-                      onClick={() => setRooms(prev => Math.max(1, prev - 1))}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Minus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                    <span className="w-5 text-center font-bold text-slate-900 text-sm">{rooms}</span>
-                    <button
-                      type="button"
-                      disabled={rooms >= 10}
-                      onClick={() => setRooms(prev => prev + 1)}
-                      className="w-8 h-8 rounded-lg border border-slate-300 flex items-center justify-center hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-slate-700" />
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setGuestsPopoverOpen(false)}
-                  className="w-full mt-2 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition cursor-pointer"
-                >
-                  Done
-                </button>
+        {/* 3. Occupancy Box */}
+        <div 
+          ref={guestsRef} 
+          className="relative flex-1 bg-white p-2 sm:p-2.5 rounded flex items-center justify-between gap-3 cursor-pointer select-none"
+          onClick={() => setGuestsOpen(prev => !prev)}
+        >
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="text-amber-500 shrink-0">
+              <User className="w-6 h-6 stroke-[1.75]" />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+              <div className="text-[11px] text-slate-500 font-normal leading-tight">
+                Select occupancy
               </div>
-            )}
+              <div className="text-slate-900 font-bold text-sm sm:text-[15px] truncate">
+                {adults} adults · {children} children · {rooms} room
+              </div>
+            </div>
           </div>
+          <ChevronDown className="w-4 h-4 text-slate-500 shrink-0" />
 
-          {/* SECTION D: Search Action Button (Booking.com large blue/amber button) */}
-          <div className="md:col-span-1 p-1.5 sm:p-2 flex items-center justify-center">
-            <button
-              type="submit"
-              className="w-full h-full min-h-[46px] md:min-h-[50px] px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 active:scale-95 text-slate-950 font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/30 cursor-pointer"
+          {/* Occupancy Counter Popover */}
+          {guestsOpen && (
+            <div 
+              className="absolute right-0 top-full mt-1.5 w-72 bg-white rounded-lg shadow-2xl border border-slate-200 p-4 z-50 space-y-3"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Search className="w-5 h-5 text-slate-950 shrink-0 stroke-[2.5]" />
-              <span className="md:hidden">Search Deals</span>
-            </button>
-          </div>
+              {/* Adults */}
+              <div className="flex items-center justify-between text-left">
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Adults</div>
+                  <div className="text-[11px] text-slate-500">Age 18+</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={adults <= 1}
+                    onClick={() => setAdults(prev => Math.max(1, prev - 1))}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="w-4 text-center font-bold text-slate-900 text-sm">{adults}</span>
+                  <button
+                    type="button"
+                    disabled={adults >= 20}
+                    onClick={() => setAdults(prev => prev + 1)}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
 
-        </form>
-      </div>
+              {/* Children */}
+              <div className="flex items-center justify-between text-left pt-2 border-t border-slate-100">
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Children</div>
+                  <div className="text-[11px] text-slate-500">Age 0 – 17</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={children <= 0}
+                    onClick={() => setChildren(prev => Math.max(0, prev - 1))}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="w-4 text-center font-bold text-slate-900 text-sm">{children}</span>
+                  <button
+                    type="button"
+                    disabled={children >= 15}
+                    onClick={() => setChildren(prev => prev + 1)}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
 
-      {/* 3. Bottom Filter Bar / Trust & Quick Picks */}
-      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 px-1 text-xs">
-        
-        {/* Quick Checkbox Options (Booking.com style) */}
-        <div className="flex flex-wrap items-center gap-3 text-slate-200">
-          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:text-white transition">
-            <input
-              type="checkbox"
-              checked={privateOnly}
-              onChange={(e) => setPrivateOnly(e.target.checked)}
-              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-600 cursor-pointer"
-            />
-            <span className="font-medium text-[11px] sm:text-xs">Private guided tours only</span>
-          </label>
+              {/* Rooms */}
+              <div className="flex items-center justify-between text-left pt-2 border-t border-slate-100">
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Rooms</div>
+                  <div className="text-[11px] text-slate-500">Number of rooms</div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    disabled={rooms <= 1}
+                    onClick={() => setRooms(prev => Math.max(1, prev - 1))}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Minus className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="w-4 text-center font-bold text-slate-900 text-sm">{rooms}</span>
+                  <button
+                    type="button"
+                    disabled={rooms >= 10}
+                    onClick={() => setRooms(prev => prev + 1)}
+                    className="w-8 h-8 rounded border border-amber-500 text-amber-700 flex items-center justify-center font-bold disabled:border-slate-300 disabled:text-slate-300 hover:bg-amber-50 cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
 
-          <label className="inline-flex items-center gap-1.5 cursor-pointer hover:text-white transition">
-            <input
-              type="checkbox"
-              checked={freeCancel}
-              onChange={(e) => setFreeCancel(e.target.checked)}
-              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-slate-900 border-slate-600 cursor-pointer"
-            />
-            <span className="font-medium text-[11px] sm:text-xs">Free cancellation</span>
-          </label>
+              <button
+                type="button"
+                onClick={() => setGuestsOpen(false)}
+                className="w-full mt-2 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-bold transition cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Quick Search Chips */}
-        <div className="hidden sm:flex items-center gap-1.5">
-          <span className="text-[11px] text-slate-400 font-medium">Popular:</span>
-          {QUICK_TAGS.slice(0, 3).map((tag, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handleQuickTagClick(tag)}
-              className="px-2 py-0.5 rounded-full bg-white/10 hover:bg-amber-400/20 text-slate-300 hover:text-amber-300 text-[10px] sm:text-[11px] font-medium border border-white/10 hover:border-amber-400/40 transition cursor-pointer"
-            >
-              {tag.label}
-            </button>
-          ))}
-        </div>
+        {/* 4. Luxury Gold Amber Search Button */}
+        <button
+          type="submit"
+          className="bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 active:scale-95 text-slate-950 font-extrabold text-sm sm:text-base px-6 sm:px-8 py-2.5 sm:py-3 rounded flex items-center justify-center gap-2 transition cursor-pointer select-none shadow-md shadow-amber-500/20"
+        >
+          <span>Search</span>
+        </button>
 
+      </form>
+
+      {/* Simple Checkbox under the bar */}
+      <div className="mt-1 text-left">
+        <label className="inline-flex items-center gap-2 cursor-pointer select-none text-slate-200 hover:text-white">
+          <input
+            type="checkbox"
+            checked={freeCancel}
+            onChange={(e) => setFreeCancel(e.target.checked)}
+            className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 bg-white border-slate-300 cursor-pointer"
+          />
+          <span className="text-xs font-medium text-slate-200">
+            I'm looking for tours with free cancellation
+          </span>
+        </label>
       </div>
 
     </div>

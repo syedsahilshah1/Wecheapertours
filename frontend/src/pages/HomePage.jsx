@@ -254,7 +254,7 @@ const HomePage = () => {
     <div className="space-y-24 pb-20">
       
       {/* 1. HERO SECTION WITH ANIMATED BADGES & VISUALS */}
-      <section className="relative min-h-[680px] sm:min-h-[720px] lg:min-h-[760px] flex flex-col justify-center items-center text-white overflow-hidden bg-slate-950 py-10 sm:py-14">
+      <section className="relative min-h-[calc(100vh-96px)] lg:h-[calc(100vh-96px)] max-h-[850px] flex flex-col justify-between items-center text-white overflow-hidden bg-slate-950 py-3 sm:py-4">
         <div 
           className="absolute inset-0 bg-cover bg-center transition-transform duration-1000 scale-105"
           style={{
@@ -263,33 +263,34 @@ const HomePage = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a1829] via-[#0a1829]/75 to-[#0a1829]/50" />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 w-full flex flex-col justify-center items-center text-center z-10 space-y-4 sm:space-y-6">
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 w-full h-full flex flex-col justify-between items-center text-center z-10 py-1">
           
           {/* Animated floating pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] sm:text-xs font-semibold backdrop-blur-md animate-float">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-[11px] sm:text-xs font-semibold backdrop-blur-md animate-float">
             <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
             <span>Direct Local Rates in Egypt • Licensed Tour Operators</span>
           </div>
 
-          {/* Core Hero Content */}
-          <div className="flex flex-col items-center space-y-2.5 sm:space-y-3 max-w-4xl">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white font-serif leading-tight">
+          {/* Core Hero Content & Search Bar */}
+          <div className="my-auto w-full flex flex-col items-center space-y-2 sm:space-y-3 py-1">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-serif leading-tight">
               Experience The Soul Of <br className="hidden sm:inline" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
                 Timeless Egypt
               </span>
             </h1>
 
-            <p className="text-xs sm:text-sm md:text-base text-slate-200/90 max-w-2xl sm:max-w-3xl mx-auto leading-relaxed font-light">
+            <p className="text-xs sm:text-sm text-slate-200/90 max-w-2xl mx-auto leading-relaxed font-light">
               Find and book private Giza pyramid excursions, 5-star Nile cruises, chauffeur rentals, and luxury stays with zero booking markups.
             </p>
+
+            <div className="w-full pt-1">
+              <HeroBookingFilter destinations={destinations} />
+            </div>
           </div>
 
-          {/* Booking.com Style Filter Widget */}
-          <HeroBookingFilter destinations={destinations} />
-
           {/* Animated Trust Indicators (Compact Horizontal Glass Cards) */}
-          <div className="w-full max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-left pb-1">
+          <div className="w-full max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 text-left pt-1 pb-1">
             <div className="bg-white/10 backdrop-blur-md px-3 py-2 rounded-xl border border-white/15 flex items-center gap-2.5 hover-lift">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
                 <Award className="w-4 h-4 text-amber-400" />
